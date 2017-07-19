@@ -1,0 +1,39 @@
+ 
+A)Find out the customer I.D for the customer who has spent the maximum amount in a month and in all the 4 months. 
+Answer would be - total 5 customer IDs
+1) One for each month
+2) One for all the 4 months.
+
+
+create table retail4month(tran_dt string,custno string,age string,pin string,category string,product string,qty int,cost bigint,sales bigint) row format delimited fields terminated by '\;' stored as textfile;
+load data local inpath '/home/hduser/Retail Data' into table retail4month; 
+
+
+select custno,sum(sales) as total_sales from niit.retail4month group by custno order by total_sales desc limit 1;
+
+select month, custno, total_sales from (select month, custno, total_sales, rank() over (partition by month order by total_sales desc) as rank from (select substr(tran_dt,6,2) as month, custno,sum(sales) as total_sales from retail4month group by substr(tran_dt,6,2), custno order by month,total_sales desc) s) t where rank =1;
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+B)Find out the top 4 or top 10 product being sold in the monthly basis and in all the 4 months.. Criteria for top should be sales amount
+
+ans--Top 10
+select month, product,total_sales from 
+(select month, product,total_sales, rank() over (partition by month order by total_sales desc) as rank from (select substr(tran_dt,6,2) as month, product,sum(sales) as total_sales from retail4month group by substr(tran_dt,6,2),product order by total_sales desc) s ) t where rank <=10;
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+C)Find out the top 5 viable products and the top 5 product subclass for the age group A, B, C etc..... Data should be taken for all the 4 months
+ 
+ans---- top 5 product agewise
+
+select age, product,total_sales from 
+(select age, product,total_sales, rank() over (partition by age order by total_sales desc) as rank from (select age,product,sum(sales) as total_sales from retail4month group by age, product order by age,total_sales desc) s ) t where rank <=5;
+
+
+ans---top 5 catagory agewise 
+
+select age, category,total_sales from 
+(select age, category,total_sales, rank() over (partition by age order by total_sales desc) as rank from (select age,category, sum(sales) as total_sales from retail4month group by age, category order by age,total_sales desc) s ) t where rank <=5;
+
+

@@ -1,0 +1,2 @@
+INSERT OVERWRITE DIRECTORY '/project/project2a' ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' STORED AS TEXTFILE
+select t.year, t.State, SUM(t.Total) as Count from (select year, trim(split(worksite,",")[1]) as State, count(*)  as Total from project.h1b_final where job_title like '%DATA ENGINEER%' group by year, worksite order by year, Total desc) t group by year, t.State order by year, Count desc;
